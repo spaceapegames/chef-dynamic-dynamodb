@@ -18,6 +18,14 @@
 # limitations under the License.
 #
 
+#### going to populate the table setup from the databag
+begin
+    tables_databag = data_bag_item('dynamic-dynamo', 'tables')
+rescue
+	log 'you have no tables in your databag!'
+	tables_databag = {}
+end
+
 directory "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo" do
     owner node['dynamic-dynamo']['user']
     group node['dynamic-dynamo']['group']
@@ -40,6 +48,23 @@ git "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo" do
     group node['dynamic-dynamo']['group']
     action :sync
 end
+
+template "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo/dynamic-dynamo.conf" do
+	source "dynamic-dynamo.erb"
+	user node['dynamic-dynamo']['user']
+    group node['dynamic-dynamo']['group']
+    variables(
+    	:aws_access_key_id => node['dynamic-dynamo']['config']['global']['aws_access_key_id'],
+    	:aws_secret_access_key_id => node['dynamic-dynamo']['config']['global']['aws_secret_access_key_id'],
+    	:region => node['dynamic-dynamo']['config']['global']['region'],
+    	:check_interval => node['dynamic-dynamo']['config']['global']['check_interval'],
+    	:circuit_breaker_url => node['dynamic-dynamo']['config']['global']['circuit_breaker_url'],
+    	:circuit_breaker_timeout => node['dynamic-dynamo']['config']['global']['circuit_breaker_timeout'],
+    	:tables_databag => tables_databag
+    	)
+	mode 00644
+end
+
 
 supervisor_service service['name'] do
     command "./dynamic-dynamo.py -c #{node['dynamic-dynamo']['config_file']}"
