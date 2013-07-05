@@ -1,0 +1,5 @@
+default['dynamic-dynamo']['base_path'] = '/opt/dynamic-dynamo'
+default['dynamic-dynamo']['user'] = 'ubuntu'
+default['dynamic-dynamo']['group'] = 'ubuntu'
+default['dynamic-dynamo']['config_file'] = 'dynamic-dynamo.conf'
+default['dynamic-dynamo']['log_path'] = '/var/log/dynamic-dynamodb/'
