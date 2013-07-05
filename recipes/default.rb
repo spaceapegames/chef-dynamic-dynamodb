@@ -19,36 +19,36 @@
 #
 
 directory "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo" do
-	owner node['dynamic-dynamo']['user']
-	group node['dynamic-dynamo']['group']
-	mode 00755
-	action :create
+    owner node['dynamic-dynamo']['user']
+    group node['dynamic-dynamo']['group']
+    mode 00755
+    action :create
 end
 
 directory "#{node['dynamic-dynamo']['log_path']}/dynamic-dynamo" do
-	owner node['dynamic-dynamo']['user']
-	group node['dynamic-dynamo']['group']
-	mode 00755
-	action :create
+    owner node['dynamic-dynamo']['user']
+    group node['dynamic-dynamo']['group']
+    mode 00755
+    action :create
 end
 
 
 git "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo" do
-	repository "git@github.com:elasticsearch/kibana.git"
-	reference "master"
-	user node['dynamic-dynamo']['user']
-	group node['dynamic-dynamo']['group']
-	action :sync
+    repository "git@github.com:elasticsearch/kibana.git"
+    reference "master"
+    user node['dynamic-dynamo']['user']
+    group node['dynamic-dynamo']['group']
+    action :sync
 end
 
 supervisor_service service['name'] do
     command "./dynamic-dynamo.py -c #{node['dynamic-dynamo']['config_file']}"
-	directory node['dynamic-dynamo']['base_path']}/dynamic-dynamo
-	action :enable
-	supports :status => true, :start => true, :stop => true, :restart => true
-	user node['dynamic-dynamo']['user']
-	startretries 2
-	startsecs 5
-	stdout_logfile "#{node['dynamic-dynamo']['log_path']}dynamic-dynamo_stdout.log"
-	stderr_logfile "#{node['dynamic-dynamo']['log_path']}dynamic-dynamo_stderr.log"  
+    directory node['dynamic-dynamo']['base_path']}/dynamic-dynamo
+    action :enable
+    supports :status => true, :start => true, :stop => true, :restart => true
+    user node['dynamic-dynamo']['user']
+    startretries 2
+    startsecs 5
+    stdout_logfile "#{node['dynamic-dynamo']['log_path']}dynamic-dynamo_stdout.log"
+    stderr_logfile "#{node['dynamic-dynamo']['log_path']}dynamic-dynamo_stderr.log"  
 end 
