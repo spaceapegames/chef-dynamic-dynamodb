@@ -18,9 +18,13 @@
 # limitations under the License.
 #
 
+include_recipe "git"
+include_recipe "supervisor"
+
+
 #### going to populate the table setup from the databag
 begin
-    tables_databag = data_bag_item('dynamic-dynamo', 'tables')
+    tables_databag = data_bag_item('dynamic-dynamodb', 'tables')
 rescue
 	log 'you have no tables in your databag!'
 	tables_databag = {}
@@ -28,62 +32,63 @@ end
 
 #### going to grab your aws keys from the databag
 begin
-    aws_creds = data_bag_item('aws', 'dynamic-dynamo')
+    aws_creds = data_bag_item('aws', 'dynamic-dynamodb')
 rescue
     log 'you have no aws creds in your databag! we are ging to use the ones in your cookbook, or .boto file if nil'
-    aws_creds['aws_access_key_id'] = node['dynamic-dynamo']['config']['global']['aws_access_key_id']
-    aws_creds['aws_secret_access_key_id'] = node['dynamic-dynamo']['config']['global']['aws_secret_access_key_id']
+    aws_creds = {}
+    aws_creds['aws_access_key_id'] = node['dynamic-dynamodb']['config']['global']['aws_access_key_id']
+    aws_creds['aws_secret_access_key_id'] = node['dynamic-dynamodb']['config']['global']['aws_secret_access_key_id']
 end
 
-directory "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo" do
-    owner node['dynamic-dynamo']['user']
-    group node['dynamic-dynamo']['group']
+directory "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb" do
+    owner node['dynamic-dynamodb']['user']
+    group node['dynamic-dynamodb']['group']
     mode 00755
     action :create
 end
 
-directory "#{node['dynamic-dynamo']['log_path']}/dynamic-dynamo" do
-    owner node['dynamic-dynamo']['user']
-    group node['dynamic-dynamo']['group']
+directory "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb" do
+    owner node['dynamic-dynamodb']['user']
+    group node['dynamic-dynamodb']['group']
     mode 00755
     action :create
 end
 
 
-git "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo" do
-    repository "git@github.com:elasticsearch/kibana.git"
+git "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb" do
+    repository "git://github.com/spaceapegames/chef-dynamic-dynamodb.git"
     reference "master"
-    user node['dynamic-dynamo']['user']
-    group node['dynamic-dynamo']['group']
+    user node['dynamic-dynamodb']['user']
+    group node['dynamic-dynamodb']['group']
     action :sync
 end
 
-template "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo/dynamic-dynamo.conf" do
-	source "dynamic-dynamo.erb"
-	user node['dynamic-dynamo']['user']
-    group node['dynamic-dynamo']['group']
+template "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dynamodb.conf" do
+	source "dynamic-dynamodb.conf.erb"
+	user node['dynamic-dynamodb']['user']
+    group node['dynamic-dynamodb']['group']
     variables(
     	:aws_access_key_id => aws_creds['aws_access_key_id'],
     	:aws_secret_access_key_id => aws_creds['aws_secret_access_key_id'],
-    	:region => node['dynamic-dynamo']['config']['global']['region'],
-    	:check_interval => node['dynamic-dynamo']['config']['global']['check_interval'],
-    	:circuit_breaker_url => node['dynamic-dynamo']['config']['global']['circuit_breaker_url'],
-    	:circuit_breaker_timeout => node['dynamic-dynamo']['config']['global']['circuit_breaker_timeout'],
+    	:region => node['dynamic-dynamodb']['config']['global']['region'],
+    	:check_interval => node['dynamic-dynamodb']['config']['global']['check_interval'],
+    	:circuit_breaker_url => node['dynamic-dynamodb']['config']['global']['circuit_breaker_url'],
+    	:circuit_breaker_timeout => node['dynamic-dynamodb']['config']['global']['circuit_breaker_timeout'],
     	:tables => tables_databag
     	)
 	mode 00644
-    notifies :restart, "supervisor_service[dynamic-dynamo]"
+    notifies :restart, "supervisor_service[dynamic-dynamodb]"
 end
 
 
-supervisor_service 'dynamic-dynamo' do
-    command "./dynamic-dynamo.py -c #{node['dynamic-dynamo']['config_file']}"
-    directory "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo"
+supervisor_service 'dynamic-dynamodb' do
+    command "./dynamic-dynamodb.py -c #{node['dynamic-dynamodb']['config_file']}"
+    directory "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb"
     action :enable
     supports :status => true, :start => true, :stop => true, :restart => true
-    user node['dynamic-dynamo']['user']
+    user node['dynamic-dynamodb']['user']
     startretries 2
     startsecs 5
-    stdout_logfile "#{node['dynamic-dynamo']['log_path']}dynamic-dynamo_stdout.log"
-    stderr_logfile "#{node['dynamic-dynamo']['log_path']}dynamic-dynamo_stderr.log"  
+    stdout_logfile "#{node['dynamic-dynamodb']['log_path']}dynamic-dynamodb_stdout.log"
+    stderr_logfile "#{node['dynamic-dynamodb']['log_path']}dynamic-dynamodb_stderr.log"  
 end 
