@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: chef-dynamic-dynamo
+# Cookbook Name:: chef-dynamic-dynamodb
 # Recipe:: default
 #
 # Copyright 2013, Space Ape Games
@@ -24,6 +24,15 @@ begin
 rescue
 	log 'you have no tables in your databag!'
 	tables_databag = {}
+end
+
+#### going to grab your aws keys from the databag
+begin
+    aws_creds = data_bag_item('aws', 'dynamic-dynamo')
+rescue
+    log 'you have no aws creds in your databag! we are ging to use the ones in your cookbook, or .boto file if nil'
+    aws_creds['aws_access_key_id'] = node['dynamic-dynamo']['config']['global']['aws_access_key_id']
+    aws_creds['aws_secret_access_key_id'] = node['dynamic-dynamo']['config']['global']['aws_secret_access_key_id']
 end
 
 directory "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo" do
@@ -54,21 +63,22 @@ template "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo/dynamic-dynamo.c
 	user node['dynamic-dynamo']['user']
     group node['dynamic-dynamo']['group']
     variables(
-    	:aws_access_key_id => node['dynamic-dynamo']['config']['global']['aws_access_key_id'],
-    	:aws_secret_access_key_id => node['dynamic-dynamo']['config']['global']['aws_secret_access_key_id'],
+    	:aws_access_key_id => aws_creds['aws_access_key_id'],
+    	:aws_secret_access_key_id => aws_creds['aws_secret_access_key_id'],
     	:region => node['dynamic-dynamo']['config']['global']['region'],
     	:check_interval => node['dynamic-dynamo']['config']['global']['check_interval'],
     	:circuit_breaker_url => node['dynamic-dynamo']['config']['global']['circuit_breaker_url'],
     	:circuit_breaker_timeout => node['dynamic-dynamo']['config']['global']['circuit_breaker_timeout'],
-    	:tables_databag => tables_databag
+    	:tables => tables_databag
     	)
 	mode 00644
+    notifies :restart, "supervisor_service[dynamic-dynamo]"
 end
 
 
-supervisor_service service['name'] do
+supervisor_service 'dynamic-dynamo' do
     command "./dynamic-dynamo.py -c #{node['dynamic-dynamo']['config_file']}"
-    directory node['dynamic-dynamo']['base_path']}/dynamic-dynamo
+    directory "#{node['dynamic-dynamo']['base_path']}/dynamic-dynamo"
     action :enable
     supports :status => true, :start => true, :stop => true, :restart => true
     user node['dynamic-dynamo']['user']

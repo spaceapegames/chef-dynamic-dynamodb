@@ -1,0 +1,37 @@
+[global]
+
+<% unless @aws_access_key_id.nil? =%>
+# AWS access keys
+aws-access-key-id: <%= @aws_access_key_id %>
+aws-secret-access-key-id: <%= @ws_secret_access_key_id %>
+<% end -%>
+
+# AWS region to use
+region: <%= @region %>
+
+# How often should Dynamic DynamoDB monitor changes (in seconds)
+check-interval: <%= @check_interval %>
+
+<% unless @circuit_breaker_url.nil? =%>
+circuit-breaker-url: <%= @circuit_breaker_url %>
+circuit-breaker-timeout: <%= @circuit_breaker_timeout %>
+<% end -%>
+
+[logging]
+# Log level [debug|info|warning|error]
+log-level: <%= @log_level %>
+
+# Log file (comment out to get only console output)
+log-file: <%= @log_file %>
+
+
+<% @tables.each do |table_name, table_config| -%>
+[table: <%= table_name %>]
+  <% table_config.each do |key, value| -%>
+<%= "#{key.gsub('-', '_')}: #{value}" %>
+  <% end -%>  
+
+<% end -%>  
+
+
+
