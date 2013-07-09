@@ -2,7 +2,9 @@
 chef-dynamic-dynamodb
 =====================
 
-this is a draft, and work in progress, will support single instance of dynamic dynamo, configuration will be pulled in from the databag.
+This is a simple cookbook to install and configure dynamic-dynamodb, it relies on supervisord and a databag to grab the table setup from.
+This cookbook was a quick hack i put together, so please help me improve it if you wish.
+It should work out of the box on ubuntu systems.
 
 Accepting pull requests actively, just create an issue and make a request, or catch me on irc (freenode willejs), twitter or email.
 
