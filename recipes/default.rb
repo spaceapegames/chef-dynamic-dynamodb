@@ -56,7 +56,7 @@ end
 
 
 git "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb" do
-    repository "git://github.com/spaceapegames/chef-dynamic-dynamodb.git"
+    repository "git://github.com/sebdah/dynamic-dynamodb.git"
     reference "master"
     user node['dynamic-dynamodb']['user']
     group node['dynamic-dynamodb']['group']
@@ -82,13 +82,13 @@ end
 
 
 supervisor_service 'dynamic-dynamodb' do
-    command "./dynamic-dynamodb.py -c #{node['dynamic-dynamodb']['config_file']}"
+    command "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamo/dynamic-dynamodb.py -c #{node['dynamic-dynamodb']['config_file']}"
     directory "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb"
     action :enable
     supports :status => true, :start => true, :stop => true, :restart => true
     user node['dynamic-dynamodb']['user']
     startretries 2
     startsecs 5
-    stdout_logfile "#{node['dynamic-dynamodb']['log_path']}dynamic-dynamodb_stdout.log"
-    stderr_logfile "#{node['dynamic-dynamodb']['log_path']}dynamic-dynamodb_stderr.log"  
+    stdout_logfile "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb_stdout.log"
+    stderr_logfile "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb_stderr.log"  
 end 
