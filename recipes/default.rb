@@ -82,7 +82,7 @@ end
 
 
 supervisor_service 'dynamic-dynamodb' do
-    command "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamo/dynamic-dynamodb.py -c #{node['dynamic-dynamodb']['config_file']}"
+    command "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dynamodb -c #{node['dynamic-dynamodb']['config_file']}"
     directory "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb"
     action :enable
     supports :status => true, :start => true, :stop => true, :restart => true
