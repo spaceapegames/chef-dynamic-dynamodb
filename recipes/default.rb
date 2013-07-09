@@ -24,7 +24,7 @@ include_recipe "supervisor"
 
 #### going to populate the table setup from the databag
 begin
-    tables_databag = data_bag_item('dynamic-dynamodb', 'tables')
+    tables_databag = data_bag_item('dynamic-dynamodb', 'tables').raw_data
 rescue
 	log 'you have no tables in your databag!'
 	tables_databag = {}
@@ -32,7 +32,7 @@ end
 
 #### going to grab your aws keys from the databag
 begin
-    aws_creds = data_bag_item('aws', 'dynamic-dynamodb')
+    aws_creds = data_bag_item('aws', 'dynamic-dynamodb').to_hash
 rescue
     log 'you have no aws creds in your databag! we are ging to use the ones in your cookbook, or .boto file if nil'
     aws_creds = {}
@@ -63,15 +63,26 @@ git "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb" do
     action :sync
 end
 
+script "Install Requirements" do
+  interpreter "bash"
+  user 'root'
+  group 'root'
+  code <<-EOH
+  /usr/local/bin/pip install -r "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/requirements.txt"
+  EOH
+end
+
 template "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dynamodb.conf" do
 	source "dynamic-dynamodb.conf.erb"
 	user node['dynamic-dynamodb']['user']
     group node['dynamic-dynamodb']['group']
     variables(
     	:aws_access_key_id => aws_creds['aws_access_key_id'],
-    	:aws_secret_access_key_id => aws_creds['aws_secret_access_key_id'],
+    	:aws_secret_access_key_id => aws_creds['aws_secret_access_key'],
     	:region => node['dynamic-dynamodb']['config']['global']['region'],
     	:check_interval => node['dynamic-dynamodb']['config']['global']['check_interval'],
+        :log_level => node['dynamic-dynamodb']['log_level'],
+        :log_file => "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb/#{node['dynamic-dynamodb']['log_file']}",
     	:circuit_breaker_url => node['dynamic-dynamodb']['config']['global']['circuit_breaker_url'],
     	:circuit_breaker_timeout => node['dynamic-dynamodb']['config']['global']['circuit_breaker_timeout'],
     	:tables => tables_databag

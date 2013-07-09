@@ -3,7 +3,7 @@
 <% unless @aws_access_key_id.nil? =%>
 # AWS access keys
 aws-access-key-id: <%= @aws_access_key_id %>
-aws-secret-access-key-id: <%= @ws_secret_access_key_id %>
+aws-secret-access-key-id: <%= @aws_secret_access_key_id %>
 <% end -%>
 
 # AWS region to use
@@ -26,11 +26,13 @@ log-file: <%= @log_file %>
 
 
 <% @tables.each do |table_name, table_config| -%>
+<% unless table_name == 'id' -%>
 [table: <%= table_name %>]
   <% table_config.each do |key, value| -%>
-<%= "#{key.gsub('-', '_')}: #{value}" %>
+<%= "#{key.gsub('_', '-')}: #{value}" %>
   <% end -%>  
 
+<% end -%>  
 <% end -%>  
 
 
