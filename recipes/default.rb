@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: chef-dynamic-dynamodb
+# Cookbook Name:: dynamic-dynamodb
 # Recipe:: default
 #
 # Copyright 2013, Space Ape Games
@@ -91,15 +91,24 @@ template "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dyna
     notifies :restart, "supervisor_service[dynamic-dynamodb]"
 end
 
+options = []
+if node['dynamic-dynamodb']['dry_run'] == true
+    options << '--dry-run'
+end 
+
+if node['dynamic-dynamodb']['daemon'] == true
+    options << '--daemon start'
+end
 
 supervisor_service 'dynamic-dynamodb' do
-    command "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dynamodb -c #{node['dynamic-dynamodb']['config_file']}"
+    command "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dynamodb -c #{node['dynamic-dynamodb']['config_file']} #{options.join(' ')}"
     directory "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb"
     action :enable
     supports :status => true, :start => true, :stop => true, :restart => true
     user node['dynamic-dynamodb']['user']
     startretries 2
     startsecs 5
+    pid "/tmp/dynamic-dynamodb.default.pid"
     stdout_logfile "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb_stdout.log"
     stderr_logfile "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb_stderr.log"  
 end 

@@ -1,6 +1,6 @@
 
 =======
-chef-dynamic-dynamodb
+dynamic-dynamodb
 =====================
 
 this is a draft, and work in progress, will support single instance of dynamic dynamo, configuration will be pulled in from the databag.
