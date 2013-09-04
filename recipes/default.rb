@@ -19,7 +19,6 @@
 #
 
 include_recipe "git"
-include_recipe "supervisor"
 
 
 #### going to populate the table setup from the databag
@@ -87,8 +86,8 @@ template "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dyna
     	:circuit_breaker_timeout => node['dynamic-dynamodb']['config']['global']['circuit_breaker_timeout'],
     	:tables => tables_databag
     	)
+    notifies :restart, "service[dynamic-dynamodb]", :delayed
 	mode 00644
-    notifies :restart, "supervisor_service[dynamic-dynamodb]"
 end
 
 options = []
@@ -96,19 +95,19 @@ if node['dynamic-dynamodb']['dry_run'] == true
     options << '--dry-run'
 end 
 
-if node['dynamic-dynamodb']['daemon'] == true
-    options << '--daemon start'
+template "/etc/init.d/dynamic-dynamodb" do
+    source "dynamic-dynamodb.erb"
+    owner "root"
+    group "root"
+    mode 0755
+    variables(
+        :command => "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dynamodb -c #{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/#{node['dynamic-dynamodb']['config_file']} #{options.join(' ')}"
+        )
 end
 
-supervisor_service 'dynamic-dynamodb' do
-    command "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dynamodb -c #{node['dynamic-dynamodb']['config_file']} #{options.join(' ')}"
-    directory "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb"
-    action :enable
-    supports :status => true, :start => true, :stop => true, :restart => true
-    user node['dynamic-dynamodb']['user']
-    startretries 2
-    startsecs 5
-    pid "/tmp/dynamic-dynamodb.default.pid"
-    stdout_logfile "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb_stdout.log"
-    stderr_logfile "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb_stderr.log"  
-end 
+service "dynamic-dynamodb" do
+  supports :restart => true, :stop => true, :start => true
+  action :enable
+  subscribes :restart, "template[/etc/init.d/dynamic-dynamodb]", :immediately
+end
+

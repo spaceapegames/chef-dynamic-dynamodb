@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# chkconfig: 35 90 12
+# description: Dynamic-Dynamodb init script
+#
+# Get function from functions library
+. /lib/lsb/init-functions
+# Start the service
+start() {
+        initlog -c "echo -n Starting Dynamic-Dynamodb: "
+        <%= @command %> --daemon start &
+        success $"Dynamic-Dynamodb Started"
+        echo
+}
+# Restart the service FOO
+stop() {
+        initlog -c "echo -n Stopping Dynamic-Dynamodb: "
+        <%= @command %> --daemon stop &
+        echo
+}
+### main logic ###
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  status)
+        status FOO
+        ;;
+  restart|reload|condrestart)
+        stop
+        start
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart|reload|status}"
+        exit 1
+esac
+exit 0
