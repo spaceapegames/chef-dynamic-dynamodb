@@ -22,16 +22,21 @@ include_recipe "git"
 
 
 #### going to populate the table setup from the databag
-begin
-    tables_databag = data_bag_item('dynamic-dynamodb', 'tables').raw_data
-rescue
-	log 'you have no tables in your databag!'
-	tables_databag = {}
+if node['dynamic-dynamodb']['config']['tables'].class == Hash
+		tables_data = node['dynamic-dynamodb']['config']['tables']
+else
+		begin
+				tables_data = data_bag_item(node['dynamic-dynamodb']['config']['tables_data_bag'], node['dynamic-dynamodb']['config']['tables_data_bag_item']).raw_data
+				tables_data.select! {|table| node['dynamic-dynamodb']['config']['tables'].include? table} if node['dynamic-dynamodb']['config']['tables'].class = Array
+		rescue
+			log 'you have no tables in your databag!'
+			tables_data = {}
+		end
 end
 
 #### going to grab your aws keys from the databag
 begin
-    aws_creds = data_bag_item('aws', 'dynamic-dynamodb').to_hash
+    aws_creds = data_bag_item(node['dynamic-dynamodb']['config']['global']['creds_data_bag'], node['dynamic-dynamodb']['config']['global']['creds_data_bag_item']).to_hash
 rescue
     log 'you have no aws creds in your databag! we are ging to use the ones in your cookbook, or .boto file if nil'
     aws_creds = {}
@@ -84,7 +89,7 @@ template "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dyna
         :log_file => "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb/#{node['dynamic-dynamodb']['log_file']}",
     	:circuit_breaker_url => node['dynamic-dynamodb']['config']['global']['circuit_breaker_url'],
     	:circuit_breaker_timeout => node['dynamic-dynamodb']['config']['global']['circuit_breaker_timeout'],
-    	:tables => tables_databag
+    	:tables => tables_data
     	)
     notifies :restart, "service[dynamic-dynamodb]", :delayed
 	mode 00644
