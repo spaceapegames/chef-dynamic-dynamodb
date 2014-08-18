@@ -22,11 +22,16 @@ include_recipe "git"
 
 
 #### going to populate the table setup from the databag
-begin
-    tables_databag = data_bag_item('dynamic-dynamodb', 'tables').raw_data
-rescue
-	log 'you have no tables in your databag!'
-	tables_databag = {}
+if node['dynamic-dynamodb']['tables'].class == Hash
+		tables_data = node['dynamic-dynamodb']['tables']
+else
+		begin
+				tables_data = data_bag_item('dynamic-dynamodb', 'tables').raw_data
+				tables_data.select! {|table| node['dynamic-dynamodb']['tables'].include? table} if node['dynamic-dynamodb']['tables'].class = Array
+		rescue
+			log 'you have no tables in your databag!'
+			tables_data = {}
+		end
 end
 
 #### going to grab your aws keys from the databag
@@ -84,7 +89,7 @@ template "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dyna
         :log_file => "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb/#{node['dynamic-dynamodb']['log_file']}",
     	:circuit_breaker_url => node['dynamic-dynamodb']['config']['global']['circuit_breaker_url'],
     	:circuit_breaker_timeout => node['dynamic-dynamodb']['config']['global']['circuit_breaker_timeout'],
-    	:tables => tables_databag
+    	:tables => tables_data
     	)
     notifies :restart, "service[dynamic-dynamodb]", :delayed
 	mode 00644

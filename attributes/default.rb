@@ -13,3 +13,5 @@ default['dynamic-dynamodb']['config']['global']['region'] = 'us-east-1'
 default['dynamic-dynamodb']['config']['global']['check_interval'] = 30
 default['dynamic-dynamodb']['config']['global']['circuit_breaker_url'] = nil
 default['dynamic-dynamodb']['config']['global']['circuit_breaker_timeout'] = 30
+default['dynamic-dynamodb']['tables'] = nil # Define a hash of values for all tables instead of querying a data_bag
+                                            # -OR- define an array of table names to filter the data_bay query
