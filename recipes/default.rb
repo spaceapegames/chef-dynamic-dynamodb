@@ -57,6 +57,7 @@ git "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb" do
 end.run_action(:sync)
 
 #Install required Python modules
+<<<<<<< HEAD
 mods = File.new("#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/requirements.txt").read.split("\n").map! { |mod| { mod.split(/[!=<>]+/)[0] => mod.split(/[!=<>]+/)[1] } }
 modules = Hash.new
 mods.each {|mod| modules.merge!(mod)}
@@ -64,6 +65,16 @@ modules.each do |k, v|
   python_pip k do
     version v
   end
+=======
+mods = File.new('requirements.txt').read.split("\n").map! { |mod| { mod.split(/[!=<>]+/)[0] => mod.split(/[!=<>]+/)[1] } }
+modules = Hash.new
+mods.each {|mod| modules.merge!(mod)}
+modules.each do |k, v|
+		package k do
+				provider Chef::Provider::PythonPip
+				version v
+		end
+>>>>>>> 6add862555f478ae888e59d1ce2e1484bfca631a
 end
 
 directory "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb" do
