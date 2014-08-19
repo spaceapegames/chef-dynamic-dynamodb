@@ -19,7 +19,7 @@
 #
 
 include_recipe "git"
-
+include_recipe "python"
 
 #### going to populate the table setup from the databag
 begin
@@ -39,11 +39,32 @@ rescue
     aws_creds['aws_secret_access_key_id'] = node['dynamic-dynamodb']['config']['global']['aws_secret_access_key_id']
 end
 
+#Create directory at compile time for git resource below
 directory "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb" do
     owner node['dynamic-dynamodb']['user']
     group node['dynamic-dynamodb']['group']
     mode 00755
-    action :create
+    action :nothing
+end.run_action(:create)
+
+# Sync git repo at compile time so we can create necessary package resources for required Python modules
+git "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb" do
+    repository "git://github.com/sebdah/dynamic-dynamodb.git"
+    reference "master"
+    user node['dynamic-dynamodb']['user']
+    group node['dynamic-dynamodb']['group']
+    action :nothing
+end.run_action(:sync)
+
+#Install required Python modules
+mods = File.new('requirements.txt').read.split("\n").map! { |mod| { mod.split(/[!=<>]+/)[0] => mod.split(/[!=<>]+/)[1] } }
+modules = Hash.new
+mods.each {|mod| modules.merge!(mod)}
+modules.each do |k, v|
+		package k do
+				provider Chef::Provider::PythonPip
+				version v
+		end
 end
 
 directory "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb" do
@@ -51,24 +72,6 @@ directory "#{node['dynamic-dynamodb']['log_path']}/dynamic-dynamodb" do
     group node['dynamic-dynamodb']['group']
     mode 00755
     action :create
-end
-
-
-git "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb" do
-    repository "git://github.com/sebdah/dynamic-dynamodb.git"
-    reference "master"
-    user node['dynamic-dynamodb']['user']
-    group node['dynamic-dynamodb']['group']
-    action :sync
-end
-
-script "Install Requirements" do
-  interpreter "bash"
-  user 'root'
-  group 'root'
-  code <<-EOH
-  /usr/local/bin/pip install -r "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/requirements.txt"
-  EOH
 end
 
 template "#{node['dynamic-dynamodb']['base_path']}/dynamic-dynamodb/dynamic-dynamodb.conf" do
