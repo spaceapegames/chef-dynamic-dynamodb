@@ -19,3 +19,4 @@ default['dynamic-dynamodb']['config']['tables'] = nil # Define a hash of values 
                                             # -OR- define an array of table names to filter the data_bay query
 default['dynamic-dynamodb']['config']['tables_data_bag'] = 'dynamic-dynamodb'
 default['dynamic-dynamodb']['config']['tables_data_bag_item'] = 'tables'
+

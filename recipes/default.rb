@@ -28,6 +28,7 @@ else
 		begin
 				tables_data = data_bag_item(node['dynamic-dynamodb']['config']['tables_data_bag'], node['dynamic-dynamodb']['config']['tables_data_bag_item']).raw_data
 				tables_data.select! {|table| node['dynamic-dynamodb']['config']['tables'].include? table} if node['dynamic-dynamodb']['config']['tables'].class = Array
+
 		rescue
 			log 'you have no tables in your databag!'
 			tables_data = {}
