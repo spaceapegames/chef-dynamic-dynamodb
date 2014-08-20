@@ -22,7 +22,7 @@ include_recipe "git"
 
 
 #### going to populate the table setup from attributes or databag
-if node['dynamic-dynamodb']['config']['tables'].class == Hash
+if [ Chef::Node::ImmutableMash , Mash ].include? node['dynamic-dynamodb']['config']['tables'].class
   tables_data = node['dynamic-dynamodb']['config']['tables']
 else
   begin
