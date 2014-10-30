@@ -1,7 +1,7 @@
 =======
 DEPRECATED
 ==========
-**This cookbook is no longer supported. You should check [https://github.com/sebdah/dynamic-dynamodb][1] for alternatives.
+** This cookbook is no longer supported. You should check [https://github.com/sebdah/dynamic-dynamodb][1] for alternatives. **
 
 dynamic-dynamodb
 =====================
